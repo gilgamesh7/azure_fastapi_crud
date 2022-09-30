@@ -1,0 +1,1 @@
+# azure_fastapi_crud
