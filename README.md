@@ -11,6 +11,24 @@
 - pipenv install fastapi
 - pipenv install "uvicorn[standard]"
 
+### Packages to install
+- See Pipfile
+
 ## Run the app
 ### VDI
 - uvicorn main:app --reload
+
+# Azure details
+- Subscription : Mr.Spock
+- Resource Group : rg-fastapi-crud
+- SQL Server : sql-fastapi-crud-exercise
+- SQL Database : sqldb-fastapi-crud-exercise
+
+# Azure SQL DB Table
+```
+create table todolist
+(
+	ToDoId INT IDENTITY PRIMARY KEY,
+	Task  NVARCHAR(128) NOT NULL
+)
+```
