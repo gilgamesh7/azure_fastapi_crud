@@ -15,7 +15,12 @@
 - pipenv install sqlalchemy
 - pipenv install azure-identity
 - pipenv install azure-keyvault-secrets
-- 
+### Environment variables to be set up (See 'Get access for app to Azure Keyvault' to get the values)
+export AZURE_CLIENT_ID=TBA
+export AZURE_TENANT_ID=TBA
+export AZURE_CLIENT_SECRET=TBA
+
+
 
 ### Packages to install
 - See Pipfile
