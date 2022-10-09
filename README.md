@@ -34,6 +34,7 @@ export AZURE_CLIENT_SECRET=TBA
 - Resource Group : rg-fastapi-crud
 - SQL Server : sql-fastapi-crud-exercise
 - SQL Database : sqldb-fastapi-crud-exercise
+- Key Vault :  kv-fastapi-crud-exercise
 
 # Azure SQL DB Table
 ```
