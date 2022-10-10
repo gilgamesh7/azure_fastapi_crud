@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine,Column, Integer, String
+from sqlalchemy import inspect, create_engine,Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 import urllib
@@ -15,33 +15,44 @@ class ToDo(Base):
     ToDoId = Column(Integer, primary_key=True)
     Task =  Column(String(50))
 
+
 def create_database_connection()-> Session:
-    # Get database password from key vault
-    vault_uri = "https://kv-fastapi-crud-exercise.vault.azure.net/"
-    secret_name = "fast-api-crud-db-password"
+    try:
+        # Get database password from key vault
+        vault_uri = "https://kv-fastapi-crud-exercise.vault.azure.net/"
+        secret_name = "fast-api-crud-db-password"
 
-    credential = DefaultAzureCredential()
-    client = SecretClient(vault_url=vault_uri, credential=credential)
+        credential = DefaultAzureCredential()
+        client = SecretClient(vault_url=vault_uri, credential=credential)
 
-    db_password = client.get_secret(secret_name).value
+        db_password = client.get_secret(secret_name).value
 
-    # Create a Azure SQL(ODBC) engine instance
-    connection_string = (
-        'DRIVER=ODBC Driver 17 for SQL Server;'
-        'SERVER=tcp:sql-fastapi-crud-exercise.database.windows.net;'
-        'PORT=1433;'
-        'DATABASE=sqldb-fastapi-crud-exercise;'
-        'UID=fastapicrudadmin;'
-        f'PWD={db_password};'
-        'Encrypt=yes;'
-        'TrustServerCertificate=no;'
-        'Connection Timeout=30;'
-    )   
-    params = urllib.parse.quote_plus(connection_string)
-    connection_uri = f"mssql+pyodbc:///?odbc_connect={params}"
-    azure_db_engine = create_engine(connection_uri,echo=False)
+        # Create a Azure SQL(ODBC) engine instance
+        connection_string = (
+            'DRIVER=ODBC Driver 17 for SQL Server;'
+            'SERVER=tcp:sql-fastapi-crud-exercise.database.windows.net;'
+            'PORT=1433;'
+            'DATABASE=sqldb-fastapi-crud-exercise;'
+            'UID=fastapicrudadmin;'
+            f'PWD={db_password};'
+            'Encrypt=yes;'
+            'TrustServerCertificate=no;'
+            'Connection Timeout=30;'
+        )   
+        params = urllib.parse.quote_plus(connection_string)
+        connection_uri = f"mssql+pyodbc:///?odbc_connect={params}"
+        azure_db_engine = create_engine(connection_uri,echo=False)
 
-    return Session(azure_db_engine)
+        # Create the database
+        if not inspect(azure_db_engine).has_table('todolist'):
+            print("Creating table")
+            Base.metadata.create_all(azure_db_engine)
+        else:
+            print("Table already exists")
+
+        return Session(azure_db_engine)
+    except Exception as err:
+        print(f"{err}")
 
 def get_todo_item_by_id(session: Session, id: int)-> str:
     with session:
@@ -50,6 +61,5 @@ def get_todo_item_by_id(session: Session, id: int)-> str:
 
     return f"todo item with id: {todo.ToDoId} and task: {todo.Task}"
 
-
-session = create_database_connection()
-print(get_todo_item_by_id(session, 1))
+if __name__ == "__main__":
+    session = create_database_connection()
