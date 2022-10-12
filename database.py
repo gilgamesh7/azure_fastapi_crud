@@ -1,4 +1,4 @@
-from sqlalchemy import inspect, create_engine,Column, Integer, String
+from sqlalchemy import inspect, create_engine,Column, Integer, String, engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 import urllib
@@ -16,7 +16,7 @@ class ToDo(Base):
     Task =  Column(String(50))
 
 
-def create_database_connection()-> Session:
+def create_database_engine()-> engine:
     try:
         # Get database password from key vault
         vault_uri = "https://kv-fastapi-crud-exercise.vault.azure.net/"
@@ -50,16 +50,25 @@ def create_database_connection()-> Session:
         else:
             print("Table already exists")
 
-        return Session(azure_db_engine)
+        return azure_db_engine
     except Exception as err:
         print(f"{err}")
 
-def get_todo_item_by_id(session: Session, id: int)-> str:
-    with session:
-        # get the todo item with the given id
-        todo = session.query(ToDo).get(id)
 
-    return f"todo item with id: {todo.ToDoId} and task: {todo.Task}"
+def create_todo_record(task: str)-> str:
+    try:
+        engine = create_database_engine()
 
-if __name__ == "__main__":
-    session = create_database_connection()
+        with Session(bind=engine, expire_on_commit=False) as session:
+            tododb = ToDo(Task=task)
+
+            session.add(tododb)
+            session.commit()
+
+            id = tododb.ToDoId
+
+        engine.dispose()
+
+        return f"Created ToDo item with id {id}"
+    except Exception as err:
+        print(f"{err}")

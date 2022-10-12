@@ -3,6 +3,13 @@ from typing import Dict
 from fastapi import FastAPI, status
 import uvicorn
 
+from pydantic import BaseModel
+
+from database import create_todo_record
+
+# Create ToDoRequest Base Model
+class ToDoRequest(BaseModel):
+    task: str
 
 app = FastAPI()
 
@@ -11,8 +18,12 @@ def root()-> Dict:
     return {"message":"In God We Trust!"}
 
 @app.post("/todo", status_code=status.HTTP_201_CREATED)
-def create_todo()-> str:
-    return "created To Do Item"
+def create_todo(todo: ToDoRequest)-> str:
+    print(f"Task : {todo.task}")
+
+    status = create_todo_record(todo.task)
+
+    return status
 
 @app.get("/todo/{id}")
 def read_todo(id: int)-> str:
