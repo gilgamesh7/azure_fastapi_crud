@@ -6,6 +6,8 @@ import urllib
 from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
 
+from logging import Logger
+
 # Create a DeclarativeMeta instance
 Base = declarative_base()
 
@@ -55,7 +57,7 @@ def create_database_engine()-> engine:
         print(f"{err}")
 
 
-def create_todo_record(task: str)-> str:
+def create_todo_record(task: str, logger: Logger)-> int:
     try:
         engine = create_database_engine()
 
@@ -69,6 +71,21 @@ def create_todo_record(task: str)-> str:
 
         engine.dispose()
 
-        return f"Created ToDo item with id {id}"
-    except Exception as err:
-        print(f"{err}")
+        return id
+    except Exception as error:
+        logger.exception(f"{error}")
+        raise error
+
+def get_todo_record(id: int, logger:Logger)-> str:
+    try:
+        engine = create_database_engine()
+
+        with Session(bind=engine, expire_on_commit=False) as session:
+            todo = session.query(ToDo).get(id)
+
+        engine.dispose()
+
+        return f"todo item with id: {todo.ToDoId} and task: {todo.Task}"
+    except Exception as error:
+        logger.exception(f"{error}")
+        raise error
