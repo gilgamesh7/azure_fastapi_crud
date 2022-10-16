@@ -85,7 +85,10 @@ def get_todo_record(id: int, logger:Logger)-> str:
 
         engine.dispose()
 
-        return f"todo item with id: {todo.ToDoId} and task: {todo.Task}"
+        if todo is None:
+            raise Exception(f"No data found for ID {id}")
+
+        return todo
     except Exception as error:
         logger.exception(f"{error}")
         raise error
