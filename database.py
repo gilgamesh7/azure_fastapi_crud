@@ -1,3 +1,4 @@
+from typing import Dict
 from sqlalchemy import inspect, create_engine,Column, Integer, String, engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
@@ -76,7 +77,7 @@ def create_todo_record(task: str, logger: Logger)-> int:
         logger.exception(f"{error}")
         raise error
 
-def get_todo_record(id: int, logger:Logger)-> str:
+def get_todo_record(id: int, logger:Logger)-> Dict:
     try:
         engine = create_database_engine()
 
@@ -89,6 +90,20 @@ def get_todo_record(id: int, logger:Logger)-> str:
             raise Exception(f"No data found for ID {id}")
 
         return todo
+    except Exception as error:
+        logger.exception(f"{error}")
+        raise error
+
+def get_all_todo_records(logger:Logger)-> Dict:
+    try:
+        engine = create_database_engine()
+
+        with Session(bind=engine, expire_on_commit=False) as session:
+            todolist = session.query(ToDo).all()
+
+        engine.dispose()
+
+        return todolist
     except Exception as error:
         logger.exception(f"{error}")
         raise error

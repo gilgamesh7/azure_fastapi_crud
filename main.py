@@ -7,7 +7,7 @@ import logging
 
 from pydantic import BaseModel, validator
 
-from database import create_todo_record, get_todo_record
+from database import create_todo_record, get_todo_record, get_all_todo_records
 
 
 # Instantiate logging
@@ -74,8 +74,15 @@ def delete_todo(id: int)-> str:
     return f"delete todo item {id}"
 
 @app.get("/todo")
-def read_todo_list()-> str:
-    return "List of todo items"
+def read_todo_list()-> Dict:
+    try:
+        logger.info(f"Getting all To Do items")
+        details = get_all_todo_records(logger)
+
+        return {"success":"y", "message":details}
+    except Exception as error:
+        logger.exception(f"Retrieval error {error}")
+        raise HTTPException(status_code=400, detail={"success":"n", "message":f"Retrieval error : {error}"})
 
 
 
