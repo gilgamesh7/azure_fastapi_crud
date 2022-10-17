@@ -7,7 +7,7 @@ import logging
 
 from pydantic import BaseModel, validator
 
-from database import create_todo_record, get_todo_record, get_all_todo_records
+from database import create_todo_record, get_todo_record, get_all_todo_records, update_todo_record
 
 
 # Instantiate logging
@@ -34,6 +34,24 @@ class ToDoIdRequest(BaseModel):
             raise HTTPException(status_code=400, detail={"success":"n", "message":"ID has to be a positive integer"})
 
         return id
+
+class ToDoUpdateRequest(BaseModel):
+    id: int
+    task: str
+
+    @validator('id')
+    def id_has_to_be_over_zero(cls, id):
+        if id <= 0 or not isinstance(id, int) :
+            raise HTTPException(status_code=400, detail={"success":"n", "message":"ID has to be a positive integer"})
+
+        return id
+
+    @validator('task')
+    def must_contain_value(cls, task):
+        if len(task) < 1 or task == "" or task is None :
+            raise ValueError("Task must contain a value")
+        
+        return task
 
 
 app = FastAPI()
@@ -65,9 +83,16 @@ def read_todo(todo_id: ToDoIdRequest=Depends())-> Dict:
         logger.exception(f"Retrieval error {error}")
         raise HTTPException(status_code=400, detail={"success":"n", "message":f"Retrieval error : {error}"})
 
-@app.put("/todo/{id}")
-def update_todo(id: int)-> str:
-    return f"Updating todo item {id}"
+@app.put("/todo")
+def update_todo(todo: ToDoUpdateRequest)-> str:
+    try:
+        logger.info(f"Updating record with Id {todo.id} and task {todo.task}")
+        details = update_todo_record(todo.id, todo.task, logger)
+
+        return {"success":"y", "message":details}
+    except Exception as error:
+        logger.exception(f"Retrieval error {error}")
+        raise HTTPException(status_code=400, detail={"success":"n", "message":f"Retrieval error : {error}"})
 
 @app.delete("/todo/{id}")
 def delete_todo(id: int)-> str:
