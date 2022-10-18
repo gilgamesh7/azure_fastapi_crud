@@ -128,3 +128,25 @@ def update_todo_record(id: int, task: str, logger:Logger)-> Dict:
     except Exception as error:
         logger.exception(f"{error}")
         raise error
+
+def delete_todo_record(id: int, logger:Logger)-> Dict:
+    try:
+        engine = create_database_engine()
+
+        with Session(bind=engine, expire_on_commit=False) as session:
+            todo = session.query(ToDo).get(id)
+
+            if todo is None:
+                raise Exception(f"No data found for ID {id}")
+
+            session.delete(todo)
+            session.commit()
+
+        engine.dispose()
+
+
+
+        return todo
+    except Exception as error:
+        logger.exception(f"{error}")
+        raise error
