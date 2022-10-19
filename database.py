@@ -1,6 +1,5 @@
 from typing import Dict
-from sqlalchemy import inspect, create_engine,Column, Integer, String, engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import inspect, create_engine, engine
 from sqlalchemy.orm import Session
 import urllib
 
@@ -9,14 +8,7 @@ from azure.identity import DefaultAzureCredential
 
 from logging import Logger
 
-# Create a DeclarativeMeta instance
-Base = declarative_base()
-
-# Define To Do class inheriting from Base
-class ToDo(Base):
-    __tablename__ = 'todolist'
-    ToDoId = Column(Integer, primary_key=True)
-    Task =  Column(String(50))
+from models import ToDo, Base
 
 
 def create_database_engine()-> engine:
@@ -67,12 +59,13 @@ def create_todo_record(task: str, logger: Logger)-> int:
 
             session.add(tododb)
             session.commit()
+            session.refresh(tododb)
 
             id = tododb.ToDoId
 
         engine.dispose()
 
-        return id
+        return tododb
     except Exception as error:
         logger.exception(f"{error}")
         raise error
